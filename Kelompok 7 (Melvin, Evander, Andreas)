@@ -1,0 +1,150 @@
+import json
+
+class SistemManajemenTA:
+    def __init__(self, data_file="data.json"):
+        self.data_file = data_file
+        self.mahasiswa_list = []
+        self.dosen_list = []
+        self.load_data()
+
+    def tambah_mahasiswa(self, nim, nama, nomor_hp, email):
+        mahasiswa = {
+            "nim": nim,
+            "nama": nama,
+            "nomor_hp": nomor_hp,
+            "email": email,
+            "judul_ta": None,
+            "deskripsi_ta": None,
+            "calon_dosen_pembimbing": None,
+            "dosen_pembimbing": None
+        }
+        self.mahasiswa_list.append(mahasiswa)
+        self.save_data()
+
+    def tambah_dosen(self, nama):
+        self.dosen_list.append(nama)
+        self.save_data()
+
+    def lihat_dosen(self):
+        print("Daftar Dosen:")
+        for i, dosen in enumerate(self.dosen_list, 1):
+            print(f"{i}. {dosen}")
+        if not self.dosen_list:
+            print("Belum ada dosen yang ditambahkan.")
+
+    def ajukan_judul(self, nim, judul, deskripsi):
+        mahasiswa = self.cari_mahasiswa(nim)
+        if mahasiswa:
+            mahasiswa["judul_ta"] = judul
+            mahasiswa["deskripsi_ta"] = deskripsi
+            self.save_data()
+            print(f"Judul TA \"{judul}\" telah diajukan oleh {mahasiswa['nama']}.")
+        else:
+            print("Mahasiswa tidak ditemukan.")
+
+    def pilih_calon_dosen(self, nim, nama_dosen):
+        mahasiswa = self.cari_mahasiswa(nim)
+        if mahasiswa and nama_dosen in self.dosen_list:
+            mahasiswa["calon_dosen_pembimbing"] = nama_dosen
+            self.save_data()
+            print(f"{nama_dosen} dipilih sebagai calon dosen pembimbing oleh {mahasiswa['nama']}.")
+        else:
+            print("Mahasiswa atau dosen tidak ditemukan.")
+
+    def plot_dosen_pembimbing(self, nim, nama_dosen):
+        mahasiswa = self.cari_mahasiswa(nim)
+        if mahasiswa and nama_dosen in self.dosen_list:
+            mahasiswa["dosen_pembimbing"] = nama_dosen
+            self.save_data()
+            print(f"{nama_dosen} telah ditetapkan sebagai dosen pembimbing untuk {mahasiswa['nama']}.")
+        else:
+            print("Mahasiswa atau dosen tidak ditemukan.")
+
+    def lihat_judul_diajukan(self):
+        print("Daftar Judul yang Diajukan:")
+        for mhs in self.mahasiswa_list:
+            if mhs["judul_ta"]:
+                print(f"Mahasiswa: {mhs['nama']}\nJudul: {mhs['judul_ta']}\nDeskripsi: {mhs['deskripsi_ta']}\n")
+        if not any(mhs["judul_ta"] for mhs in self.mahasiswa_list):
+            print("Belum ada judul yang diajukan.")
+
+    def lihat_mahasiswa(self):
+        print("Daftar Mahasiswa:")
+        for mhs in self.mahasiswa_list:
+            print(f"NIM: {mhs['nim']}, Nama: {mhs['nama']}, Dosen Pembimbing: {mhs['dosen_pembimbing'] if mhs['dosen_pembimbing'] else 'Belum Ada'}")
+        if not self.mahasiswa_list:
+            print("Belum ada mahasiswa yang ditambahkan.")
+
+    def cari_mahasiswa(self, nim):
+        for mhs in self.mahasiswa_list:
+            if mhs["nim"] == nim:
+                return mhs
+        return None
+
+    def save_data(self):
+        data = {
+            "mahasiswa_list": self.mahasiswa_list,
+            "dosen_list": self.dosen_list
+        }
+        with open(self.data_file, "w") as f:
+            json.dump(data, f, indent=4)
+
+    def load_data(self):
+        try:
+            with open(self.data_file, "r") as f:
+                data = json.load(f)
+                self.mahasiswa_list = data.get("mahasiswa_list", [])
+                self.dosen_list = data.get("dosen_list", [])
+        except FileNotFoundError:
+            print("File data.json tidak ditemukan. Memulai dengan data kosong.")
+
+# Antarmuka Pengguna
+sistem = SistemManajemenTA()
+
+while True:
+    print("\n=== Sistem Manajemen Tugas Akhir ===")
+    print("1. Tambah Mahasiswa")
+    print("2. Tambah Dosen")
+    print("3. Lihat Dosen")
+    print("4. Ajukan Judul Tugas Akhir")
+    print("5. Pilih Calon Dosen Pembimbing")
+    print("6. Plot Dosen Pembimbing")
+    print("7. Lihat Judul yang Diajukan")
+    print("8. Lihat Mahasiswa")
+    print("9. Keluar")
+
+    pilihan = input("Pilih menu: ")
+
+    if pilihan == "1":
+        nim = input("Masukkan NIM: ")
+        nama = input("Masukkan Nama: ")
+        nomor_hp = input("Masukkan Nomor HP: ")
+        email = input("Masukkan Email: ")
+        sistem.tambah_mahasiswa(nim, nama, nomor_hp, email)
+    elif pilihan == "2":
+        nama_dosen = input("Masukkan Nama Dosen: ")
+        sistem.tambah_dosen(nama_dosen)
+    elif pilihan == "3":
+        sistem.lihat_dosen()
+    elif pilihan == "4":
+        nim = input("Masukkan NIM Mahasiswa: ")
+        judul = input("Masukkan Judul Tugas Akhir: ")
+        deskripsi = input("Masukkan Deskripsi Tugas Akhir: ")
+        sistem.ajukan_judul(nim, judul, deskripsi)
+    elif pilihan == "5":
+        nim = input("Masukkan NIM Mahasiswa: ")
+        nama_dosen = input("Masukkan Nama Calon Dosen: ")
+        sistem.pilih_calon_dosen(nim, nama_dosen)
+    elif pilihan == "6":
+        nim = input("Masukkan NIM Mahasiswa: ")
+        nama_dosen = input("Masukkan Nama Dosen Pembimbing: ")
+        sistem.plot_dosen_pembimbing(nim, nama_dosen)
+    elif pilihan == "7":
+        sistem.lihat_judul_diajukan()
+    elif pilihan == "8":
+        sistem.lihat_mahasiswa()
+    elif pilihan == "9":
+        print("Keluar dari sistem.")
+        break
+    else:
+        print("Pilihan tidak valid.")
