@@ -43,9 +43,6 @@ def create_academic_calendar(year):
         'September': 9, 'Oktober': 10, 'November': 11, 'Desember': 12
     }
 
-    def clear_console():
-        os.system('cls' if os.name == 'nt' else 'clear')
-
     # Fungsi untuk mencari hari menggunakan Binary Search
     def binary_search_day(academic_calendar, month, target_day):
         if month not in academic_calendar:
@@ -273,3 +270,4 @@ def create_academic_calendar(year):
             print("Pilihan tidak valid. Coba lagi.")
 
 create_academic_calendar(2024)
+
