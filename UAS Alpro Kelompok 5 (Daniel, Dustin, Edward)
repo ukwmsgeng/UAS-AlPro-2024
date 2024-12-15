@@ -1,0 +1,234 @@
+class DosenWali:
+    def __init__(self, nama):
+        self.nama = nama
+        self.mahasiswa_bimbingan = []
+
+    def tambah_mahasiswa(self, mahasiswa):
+        self.mahasiswa_bimbingan.append(mahasiswa)
+
+    def hapus_mahasiswa(self, mahasiswa):
+        self.mahasiswa_bimbingan.remove(mahasiswa)
+
+class Mahasiswa:
+    def __init__(self, nama, nim, prodi, angkatan, email):
+        self.nama = nama
+        self.nim = nim
+        self.prodi = prodi
+        self.angkatan = angkatan
+        self.email = email
+        self.dosen_wali = None
+
+class SistemPlottingDosenWali:
+    def __init__(self):
+        self.daftar_dosen_wali = {}
+        self.daftar_mahasiswa = {}
+
+    def input_dosen_wali(self):
+        """Metode untuk memasukkan data Dosen Wali secara interaktif"""
+        while True:
+            nama_dosen = input("Masukkan Nama Dosen Wali (atau ketik 'selesai' untuk berhenti): ").strip()
+            
+            if nama_dosen.lower() == 'selesai':
+                break
+            
+            if nama_dosen not in self.daftar_dosen_wali:
+                dosen = DosenWali(nama_dosen)
+                self.daftar_dosen_wali[nama_dosen] = dosen
+                print(f"Dosen Wali {nama_dosen} berhasil ditambahkan.")
+            else:
+                print(f"Dosen Wali {nama_dosen} sudah ada.")
+
+    def input_mahasiswa(self):
+        """Metode untuk memasukkan data Mahasiswa secara interaktif"""
+        while True:
+            nama = input("Masukkan Nama Mahasiswa (atau ketik 'selesai' untuk berhenti): ").strip()
+            
+            if nama.lower() == 'selesai':
+                break
+            
+            nim = input("Masukkan NIM: ").strip()
+            prodi = input("Masukkan Program Studi: ").strip()
+            angkatan = input("Masukkan Tahun Angkatan: ").strip()
+            email = input("Masukkan Email: ").strip()
+            
+            if nim not in self.daftar_mahasiswa:
+                mahasiswa = Mahasiswa(nama, nim, prodi, angkatan, email)
+                self.daftar_mahasiswa[nim] = mahasiswa
+                print(f"Mahasiswa {nama} berhasil ditambahkan.")
+            else:
+                print(f"Mahasiswa dengan NIM {nim} sudah ada.")
+
+    def tentukan_dosen_wali_interaktif(self):
+        """Metode untuk menentukan Dosen Wali untuk Mahasiswa secara interaktif"""
+        # Tampilkan daftar mahasiswa yang belum memiliki dosen wali
+        mahasiswa_tanpa_dosen_wali = [
+            mahasiswa for mahasiswa in self.daftar_mahasiswa.values() 
+            if mahasiswa.dosen_wali is None
+        ]
+        
+        if not mahasiswa_tanpa_dosen_wali:
+            print("Semua mahasiswa sudah memiliki dosen wali.")
+            return
+        
+        print("\nMahasiswa yang belum memiliki Dosen Wali:")
+        for i, mahasiswa in enumerate(mahasiswa_tanpa_dosen_wali, 1):
+            print(f"{i}. {mahasiswa.nama} (NIM: {mahasiswa.nim})")
+        
+        # Pilih mahasiswa
+        while True:
+            try:
+                pilih_mahasiswa = int(input("Pilih nomor mahasiswa: "))
+                if 1 <= pilih_mahasiswa <= len(mahasiswa_tanpa_dosen_wali):
+                    mahasiswa_terpilih = mahasiswa_tanpa_dosen_wali[pilih_mahasiswa - 1]
+                    break
+                else:
+                    print("Pilihan tidak valid. Silakan coba lagi.")
+            except ValueError:
+                print("Masukkan angka yang valid.")
+        
+        # Tampilkan daftar dosen wali
+        print("\nDaftar Dosen Wali:")
+        dosen_wali_list = list(self.daftar_dosen_wali.keys())
+        for i, nama_dosen in enumerate(dosen_wali_list, 1):
+            print(f"{i}. {nama_dosen}")
+        
+        # Pilih dosen wali
+        while True:
+            try:
+                pilih_dosen = int(input("Pilih nomor Dosen Wali: "))
+                if 1 <= pilih_dosen <= len(dosen_wali_list):
+                    nama_dosen_terpilih = dosen_wali_list[pilih_dosen - 1]
+                    break
+                else:
+                    print("Pilihan tidak valid. Silakan coba lagi.")
+            except ValueError:
+                print("Masukkan angka yang valid.")
+        
+        # Hubungkan mahasiswa dengan dosen wali
+        dosen = self.daftar_dosen_wali[nama_dosen_terpilih]
+        mahasiswa_terpilih.dosen_wali = dosen
+        dosen.tambah_mahasiswa(mahasiswa_terpilih)
+        
+        print(f"Mahasiswa {mahasiswa_terpilih.nama} ditentukan dengan Dosen Wali {dosen.nama}")
+
+    def tukar_dosen_wali_interaktif(self):
+        """Metode untuk menukar Dosen Wali mahasiswa secara interaktif"""
+        # Tampilkan daftar mahasiswa yang sudah memiliki dosen wali
+        mahasiswa_dengan_dosen_wali = [
+            mahasiswa for mahasiswa in self.daftar_mahasiswa.values() 
+            if mahasiswa.dosen_wali is not None
+        ]
+        
+        if not mahasiswa_dengan_dosen_wali:
+            print("Tidak ada mahasiswa yang memiliki Dosen Wali.")
+            return
+        
+        print("\nMahasiswa dengan Dosen Wali:")
+        for i, mahasiswa in enumerate(mahasiswa_dengan_dosen_wali, 1):
+            print(f"{i}. {mahasiswa.nama} (NIM: {mahasiswa.nim}) - Dosen Wali: {mahasiswa.dosen_wali.nama}")
+        
+        # Pilih mahasiswa
+        while True:
+            try:
+                pilih_mahasiswa = int(input("Pilih nomor mahasiswa yang ingin diganti Dosen Walinya: "))
+                if 1 <= pilih_mahasiswa <= len(mahasiswa_dengan_dosen_wali):
+                    mahasiswa_terpilih = mahasiswa_dengan_dosen_wali[pilih_mahasiswa - 1]
+                    dosen_lama = mahasiswa_terpilih.dosen_wali
+                    break
+                else:
+                    print("Pilihan tidak valid. Silakan coba lagi.")
+            except ValueError:
+                print("Masukkan angka yang valid.")
+        
+        # Tampilkan daftar dosen wali (kecuali dosen wali saat ini)
+        dosen_wali_list = [dosen for dosen in self.daftar_dosen_wali.keys() if dosen != dosen_lama.nama]
+        
+        print("\nDaftar Dosen Wali:")
+        for i, nama_dosen in enumerate(dosen_wali_list, 1):
+            print(f"{i}. {nama_dosen}")
+        
+        # Pilih dosen wali baru
+        while True:
+            try:
+                pilih_dosen = int(input("Pilih nomor Dosen Wali baru: "))
+                if 1 <= pilih_dosen <= len(dosen_wali_list):
+                    nama_dosen_terpilih = dosen_wali_list[pilih_dosen - 1]
+                    break
+                else:
+                    print("Pilihan tidak valid. Silakan coba lagi.")
+            except ValueError:
+                print("Masukkan angka yang valid.")
+        
+        # Hubungkan mahasiswa dengan dosen wali baru
+        dosen_baru = self.daftar_dosen_wali[nama_dosen_terpilih]
+        
+        # Hapus mahasiswa dari dosen wali lama
+        dosen_lama.hapus_mahasiswa(mahasiswa_terpilih)
+        
+        # Tambahkan mahasiswa ke dosen wali baru
+        mahasiswa_terpilih.dosen_wali = dosen_baru
+        dosen_baru.tambah_mahasiswa(mahasiswa_terpilih)
+        
+        print(f"Dosen Wali untuk mahasiswa {mahasiswa_terpilih.nama} telah diganti dari {dosen_lama.nama} menjadi {dosen_baru.nama}")
+
+    def lihat_daftar_mahasiswa(self):
+        print("\n--- Daftar Mahasiswa ---")
+        for nim, mahasiswa in self.daftar_mahasiswa.items():
+            print(f"Nama: {mahasiswa.nama}")
+            print(f"NIM: {mahasiswa.nim}")
+            print(f"Prodi: {mahasiswa.prodi}")
+            print(f"Angkatan: {mahasiswa.angkatan}")
+            print(f"Email: {mahasiswa.email}")
+            if mahasiswa.dosen_wali:
+                print(f"Dosen Wali: {mahasiswa.dosen_wali.nama}")
+            else:
+                print("Dosen Wali: Belum ditentukan")
+            print("---")
+
+    def lihat_daftar_dosen_wali(self):
+        print("\n--- Daftar Dosen Wali ---")
+        for nama_dosen, dosen in self.daftar_dosen_wali.items():
+            print(f"Nama Dosen: {dosen.nama}")
+            print("Mahasiswa Bimbingan:")
+            if dosen.mahasiswa_bimbingan:
+                for mahasiswa in dosen.mahasiswa_bimbingan:
+                    print(f"- {mahasiswa.nama} (NIM: {mahasiswa.nim})")
+            else:
+                print("Belum ada mahasiswa bimbingan")
+            print("---")
+
+def main():
+    sistem = SistemPlottingDosenWali()
+    
+    while True:
+        print("\n--- Sistem Plotting Dosen Pembimbing Akademik ---")
+        print("1. Masukkan Nama Dosen Wali")
+        print("2. Masukkan Nama Mahasiswa")
+        print("3. Tentukan Mahasiswa dengan Dosen Wali")
+        print("4. Tukar Dosen Wali")
+        print("5. Lihat Daftar Mahasiswa")
+        print("6. Lihat Daftar Dosen Wali")
+        print("7. Keluar")
+        
+        pilihan = input("Masukkan pilihan (1-7): ")
+        
+        if pilihan == '1':
+            sistem.input_dosen_wali()
+        elif pilihan == '2':
+            sistem.input_mahasiswa()
+        elif pilihan == '3':
+            sistem.tentukan_dosen_wali_interaktif()
+        elif pilihan == '4':
+            sistem.tukar_dosen_wali_interaktif()
+        elif pilihan == '5':
+            sistem.lihat_daftar_mahasiswa()
+        elif pilihan == '6':
+            sistem.lihat_daftar_dosen_wali()
+        elif pilihan == '7':
+            print("Terima kasih. Sampai jumpa!")
+            break
+        else:
+            print("Pilihan tidak valid. Silakan coba lagi.")
+
+if __name__ == "__main__":
+    main()
