@@ -1,0 +1,275 @@
+import calendar
+import locale
+from datetime import datetime
+import bisect
+import os
+
+def create_academic_calendar(year):
+    try:
+        locale.setlocale(locale.LC_ALL, 'id_ID')
+    except locale.Error:
+        print("Warning: 'id_ID' locale not supported. Using default locale.")
+        locale.setlocale(locale.LC_ALL, '')  # Use system default locale
+
+    academic_calendar = {}
+
+    semester_genap = ['Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli']
+    semester_ganjil = ['Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari']
+    months_in_year = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+
+    public_holidays = {
+        "Januari": [1],
+        "Februari": [],
+        "Maret": [22],
+        "April": [7],
+        "Mei": [1, 18],
+        "Juni": [1],
+        "Juli": [],
+        "Agustus": [17],
+        "September": [],
+        "Oktober": [],
+        "November": [],
+        "Desember": [25],
+    }
+
+    def get_day_name(day_number):
+        days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+        return days[day_number]
+
+    month_name_to_number = {
+        'Januari': 1, 'Februari': 2, 'Maret': 3, 'April': 4,
+        'Mei': 5, 'Juni': 6, 'Juli': 7, 'Agustus': 8,
+        'September': 9, 'Oktober': 10, 'November': 11, 'Desember': 12
+    }
+
+    def clear_console():
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+    # Fungsi untuk mencari hari menggunakan Binary Search
+    def binary_search_day(academic_calendar, month, target_day):
+        if month not in academic_calendar:
+            return None
+        days = sorted(academic_calendar[month].keys())  # Urutkan hari dalam bulan
+        index = bisect.bisect_left(days, target_day)
+        if index < len(days) and days[index] == target_day:
+            return index
+        return None
+
+    # Fungsi untuk mengurutkan kegiatan menggunakan Merge Sort
+    def merge_sort_activities(activities):
+        if len(activities) <= 1:
+            return activities
+
+        mid = len(activities) // 2
+        left_half = merge_sort_activities(activities[:mid])
+        right_half = merge_sort_activities(activities[mid:])
+
+        return merge(left_half, right_half)
+
+    def merge(left, right):
+        sorted_list = []
+        while left and right:
+            if left[0] <= right[0]:
+                sorted_list.append(left.pop(0))
+            else:
+                sorted_list.append(right.pop(0))
+        sorted_list.extend(left or right)
+        return sorted_list
+
+    def input_schedule():
+        print("\nMasukkan jadwal kegiatan. Ketik 'selesai' untuk berhenti.")
+        while True:
+            month = input("Bulan (nama lengkap, misalnya 'Maret'): ")
+            if month.lower() == 'selesai':
+                break
+            if month not in month_name_to_number:
+                print("Nama bulan tidak valid. Coba lagi.")
+                continue
+
+            day = input("Tanggal (angka, misalnya '15'): ")
+            if not day.isdigit():
+                print("Tanggal harus berupa angka. Coba lagi.")
+                continue
+
+            activity = input("Deskripsi kegiatan: ")
+            day = int(day)
+
+            if month not in academic_calendar:
+                academic_calendar[month] = {}
+
+            if day not in academic_calendar[month]:
+                academic_calendar[month][day] = []
+
+            academic_calendar[month][day].append(activity)
+
+            # Mengurutkan kegiatan setelah ditambahkan
+            academic_calendar[month][day] = merge_sort_activities(academic_calendar[month][day])
+            print(f"Kegiatan '{activity}' ditambahkan pada {day} {month}.")
+
+    def remove_schedule():
+        print("\nHapus jadwal kegiatan. Ketik 'selesai' untuk berhenti.")
+        while True:
+            month = input("Bulan (nama lengkap, misalnya 'Maret'): ")
+            if month.lower() == 'selesai':
+                break
+            if month not in academic_calendar:
+                print("Tidak ada kegiatan di bulan ini. Coba lagi.")
+                continue
+
+            day = input("Tanggal (angka, misalnya '15'): ")
+            if not day.isdigit():
+                print("Tanggal harus berupa angka. Coba lagi.")
+                continue
+            day = int(day)
+
+            # Gunakan binary search untuk menemukan hari
+            index = binary_search_day(academic_calendar, month, day)
+            if index is None:
+                print(f"Tidak ada kegiatan pada tanggal {day} {month}.")
+                continue
+
+            print(f"Kegiatan pada tanggal {day} {month}:")
+            for i, activity in enumerate(academic_calendar[month][day], start=1):
+                print(f"{i}. {activity}")
+
+            activity_index = input("Pilih nomor kegiatan yang akan dihapus (atau ketik 'batal'): ")
+            if activity_index.lower() == 'batal':
+                continue
+
+            if not activity_index.isdigit() or not (1 <= int(activity_index) <= len(academic_calendar[month][day])):
+                print("Nomor tidak valid. Coba lagi.")
+                continue
+
+            activity_index = int(activity_index) - 1
+            removed_activity = academic_calendar[month][day].pop(activity_index)
+            print(f"Kegiatan '{removed_activity}' berhasil dihapus.")
+
+            if not academic_calendar[month][day]:
+                del academic_calendar[month][day]
+            if not academic_calendar[month]:
+                del academic_calendar[month]
+
+
+    def send_reminder():
+        print("\nPengingat Kegiatan")
+        month = input("Masukkan bulan kegiatan (nama lengkap, misalnya 'Maret'): ")
+        if month not in academic_calendar:
+            print(f"Tidak ada kegiatan yang tercatat untuk bulan {month}.")
+            return
+
+        day = input("Masukkan tanggal kegiatan (angka, misalnya '15'): ")
+        if not day.isdigit():
+            print("Tanggal harus berupa angka.")
+            return
+        day = int(day)
+
+        # Gunakan binary search untuk menemukan hari
+        index = binary_search_day(academic_calendar, month, day)
+        if index is None:
+            print(f"Tidak ada kegiatan pada tanggal {day} {month}.")
+            return
+
+        print(f"Kegiatan pada tanggal {day} {month}:")
+        for i, activity in enumerate(academic_calendar[month][day], start=1):
+            print(f"{i}. {activity}")
+
+        activity_index = input("Pilih nomor kegiatan untuk dijadikan pengingat (atau ketik 'batal'): ")
+        if activity_index.lower() == 'batal':
+            return
+
+        if not activity_index.isdigit() or not (1 <= int(activity_index) <= len(academic_calendar[month][day])):
+            print("Nomor tidak valid. Coba lagi.")
+            return
+
+        activity_index = int(activity_index) - 1
+        activity = academic_calendar[month][day][activity_index]
+
+        # Menghitung waktu pengingat
+        try:
+            event_date = datetime(year, month_name_to_number[month], day)
+        except ValueError:
+            print(f"Tanggal {day} {month} tidak valid.")
+            return
+
+        current_date = datetime.now()
+        delta = event_date - current_date
+
+        if delta.days < 0:
+            print("Kegiatan ini sudah lewat. Tidak bisa dijadikan pengingat.")
+        else:
+            print(f"Pengingat berhasil dibuat untuk kegiatan '{activity}' pada {day} {month} ({delta.days} hari lagi).")
+
+    def count_holidays():
+        # Hitung libur nasional semester genap
+        holidays_genap = sum(
+            len(public_holidays[month]) for month in semester_genap if month in public_holidays
+        )
+        print(f"\nJumlah total hari libur nasional pada semester genap: {holidays_genap} hari.")
+
+        # Hitung libur nasional semester ganjil
+        holidays_ganjil = sum(
+            len(public_holidays[month]) for month in semester_ganjil if month in public_holidays
+        )
+        print(f"Jumlah total hari libur nasional pada semester ganjil: {holidays_ganjil} hari.")
+
+        # Hitung total semua libur
+        total_holidays = holidays_genap + holidays_ganjil
+        print(f"Jumlah total hari libur nasional pada tahun {year}: {total_holidays} hari.")
+
+    def show_calendar():
+        for month_name in months_in_year:
+                month_number = month_name_to_number[month_name]
+                month_calendar = calendar.monthcalendar(year, month_number)
+
+                print(f"\n{month_name} {year}")
+                print("-" * 20)
+                print("  ".join(get_day_name(i)[:3] for i in range(7)))
+
+                for week in month_calendar:
+                    week_str = ""
+                    for day in week:
+                        if day == 0:
+                            week_str += "    "
+                        else:
+                            week_str += f"{day:>3}  "
+                    print(week_str)
+
+                holidays = public_holidays.get(month_name, [])
+                if holidays:
+                    print("Libur Nasional:", ", ".join(str(day) for day in holidays))
+
+                if month_name in academic_calendar:
+                    print("Jadwal Kegiatan:")
+                    for day, activities in academic_calendar[month_name].items():
+                        print(f"  {day}: {', '.join(activities)}")
+
+    def show_activities_by_month():
+        month = input("\nMasukkan nama bulan untuk melihat semua kegiatan (contoh: 'Maret'): ")
+        if month not in academic_calendar:
+            print(f"Tidak ada kegiatan yang tercatat untuk bulan {month}.")
+            return
+
+        print(f"\nKegiatan untuk bulan {month}:")
+        for day, activities in sorted(academic_calendar[month].items()):
+            print(f"  {day}: {', '.join(activities)}")
+
+    while True:
+        show_calendar()
+        action = input("\nPilih aksi:\n(1) Tambah kegiatan\n(2) Hapus kegiatan\n(3) Lihat kegiatan bulan\n(4) Kirim pengingat\n(5) Hitung libur nasional\n(6) Keluar \nMasukkan pilihan:")
+        if action == '1':
+            input_schedule()
+        elif action == '2':
+            remove_schedule()
+        elif action == '3':
+            show_activities_by_month()
+        elif action == '4':
+            send_reminder()
+        elif action == '5':
+            count_holidays()
+        elif action == '6':
+            break
+        else:
+            print("Pilihan tidak valid. Coba lagi.")
+
+create_academic_calendar(2024)
