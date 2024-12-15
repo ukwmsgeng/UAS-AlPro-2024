@@ -1,0 +1,102 @@
+class Buku:
+    def _init(self, judul, pengarang):  # Memperbaiki constructor dengan __init_
+        self.judul = judul
+        self.pengarang = pengarang
+        self.dipinjam = False
+
+class Perpustakaan:
+    def _init(self):  # Memperbaiki constructor dengan __init_
+        self.koleksi = []
+
+    def tambah_buku(self, judul, pengarang):
+        buku_baru = Buku(judul, pengarang)
+        self.koleksi.append(buku_baru)
+        print(f"Buku '{judul}' oleh {pengarang} berhasil ditambahkan ke koleksi.")
+
+    def hapus_buku(self, judul):
+        for buku in self.koleksi:
+            if buku.judul == judul:
+                self.koleksi.remove(buku)
+                print(f"Buku '{judul}' berhasil dihapus dari koleksi.")
+                return
+        print(f"Buku '{judul}' tidak ditemukan.")
+
+    def cari_buku(self, keyword):
+        hasil_cari = [buku for buku in self.koleksi if keyword.lower() in buku.judul.lower() or keyword.lower() in buku.pengarang.lower()]
+        if hasil_cari:
+            print("Hasil pencarian:")
+            for buku in hasil_cari:
+                status = "Dipinjam" if buku.dipinjam else "Tersedia"
+                print(f"Judul: {buku.judul}, Pengarang: {buku.pengarang}, Status: {status}")
+        else:
+            print("Tidak ada buku yang cocok dengan pencarian.")
+
+    def pinjam_buku(self, judul):
+        for buku in self.koleksi:
+            if buku.judul == judul:
+                if not buku.dipinjam:
+                    buku.dipinjam = True
+                    print(f"Buku '{judul}' berhasil dipinjam.")
+                else:
+                    print(f"Buku '{judul}' sedang dipinjam.")
+                return
+        print(f"Buku '{judul}' tidak ditemukan.")
+
+    def kembalikan_buku(self, judul):
+        for buku in self.koleksi:
+            if buku.judul == judul:
+                if buku.dipinjam:
+                    buku.dipinjam = False
+                    print(f"Buku '{judul}' berhasil dikembalikan.")
+                else:
+                    print(f"Buku '{judul}' tidak sedang dipinjam.")
+                return
+        print(f"Buku '{judul}' tidak ditemukan.")
+
+    def daftar_buku_dipinjam(self):
+        buku_dipinjam = [buku for buku in self.koleksi if buku.dipinjam]
+        if buku_dipinjam:
+            print("Daftar buku yang sedang dipinjam:")
+            for buku in buku_dipinjam:
+                print(f"Judul: {buku.judul}, Pengarang: {buku.pengarang}")
+        else:
+            print("Tidak ada buku yang sedang dipinjam.")
+
+# Program utama
+perpustakaan = Perpustakaan()
+
+while True:
+    print("\nMenu Perpustakaan:")
+    print("1. Tambah Buku")
+    print("2. Hapus Buku")
+    print("3. Cari Buku")
+    print("4. Pinjam Buku")
+    print("5. Kembalikan Buku")
+    print("6. Lihat Daftar Buku yang Sedang Dipinjam")
+    print("7. Keluar")
+
+    pilihan = input("Pilih menu (1-7): ")
+
+    if pilihan == "1":
+        judul = input("Masukkan judul buku: ")
+        pengarang = input("Masukkan pengarang buku: ")
+        perpustakaan.tambah_buku(judul, pengarang)
+    elif pilihan == "2":
+        judul = input("Masukkan judul buku yang ingin dihapus: ")
+        perpustakaan.hapus_buku(judul)
+    elif pilihan == "3":
+        keyword = input("Masukkan judul atau pengarang untuk mencari: ")
+        perpustakaan.cari_buku(keyword)
+    elif pilihan == "4":
+        judul = input("Masukkan judul buku yang ingin dipinjam: ")
+        perpustakaan.pinjam_buku(judul)
+    elif pilihan == "5":
+        judul = input("Masukkan judul buku yang ingin dikembalikan: ")
+        perpustakaan.kembalikan_buku(judul)
+    elif pilihan == "6":
+        perpustakaan.daftar_buku_dipinjam()
+    elif pilihan == "7":
+        print("Keluar dari program.")
+        break
+    else:
+        print("Pilihan tidak valid. Silakan coba lagi.")
